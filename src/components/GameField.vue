@@ -15,85 +15,131 @@
                 <label for="hard">Сложный</label><br>
                 <input type="radio" name="mode" id="hard" value="hard">
             </div>
-            <button v-on:click="flash">Старт</button>
+            <button v-on:click="startFlashing">Старт</button>
         </div>
         <div class="buttonsDiv">
             <div>
-                <div v-on:click="panelClicked" class="panel top-left-panel"></div>
-                <div v-on:click="panelClicked" class="panel top-right-panel"></div>
+                <div v-on:click="panelClicked" class="panel top-left-panel" :class="{ active: isTopLeftActive}"></div>
+                <div v-on:click="panelClicked" class="panel top-right-panel" :class="{ active: isTopRightActive}"></div>
             </div>
             <div>
-                <audio src="./../../sounds/1.mp3"></audio><div v-on:click="panelClicked, this.previousSibling.play()" class="panel bottom-left-panel"></div>
-                <div v-on:click="panelClicked" class="panel bottom-right-panel"></div>
+                <div v-on:click="panelClicked" class="panel bottom-left-panel" :class="{ active: isBottomLeftActive}"></div>
+                <div v-on:click="panelClicked" class="panel bottom-right-panel" :class="{ active: isBottomRightActive}"></div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+    // import Vue from 'vue'
+    let inputsMode = document.getElementsByName('mode')
+    const flash = (panel) => {
+        let delay = inputsMode[0].checked ? 1500 : inputsMode[1].checked ? 1000 : 400
+        console.log(delay)
+        console.log(panel)
+        return new Promise((resolve) => {
+            panel += ' active'
+            console.log(panel)
+            setTimeout(() => {
+                panel = panel.replace(' active', '')
+                console.log(panel)
+                setTimeout(()=>{
+                    resolve();
+                    console.log('click!')
+                }, 250)
+            }, delay)
+        })
+    }
+    const getRandomPanel = () => {
+        const panels = [
+            localStorage.topLeft,
+            localStorage.topRight,
+            localStorage.bottomLeft,
+            localStorage.bottomRight
+        ];
+        return panels[parseInt(Math.random() * panels.length)]
+    }
+    let sequence = localStorage.sequence
+    sequence = [
+        getRandomPanel()
+    ]
+    let sequenceToGuess = [...sequence]
 
     let canClick = false
-    let sequence = []
-
 
     export default {
         name: "GameField",
         data() {
             return {
+                isTopLeftActive: false,
+                isTopRightActive: false,
+                isBottomLeftActive: false,
+                isBottomRightActive: false
             }
-        },
-        getRandomPanel() {
-            const panels = [
-                this.topLeft,
-                this.topRight,
-                this.bottomLeft,
-                this.bottomRight
-            ];
-            const result = panels[parseInt(Math.random() * panels.length)]
-            return console.log(result)
         },
         methods: {
             panelClicked(panelClicked) {
+                // console.log(canClick)
                 if(!canClick) return;
-                console.log(panelClicked)
-                let sequenceToGuess = [...sequence]
+                let panelClassName = panelClicked.target.className.substr(6)
+                // panelClassName += ' active'
+                // setTimeout(() => {
+                //     panelClassName = panelClassName.replace(' active', '')
+                // }, 200)
                 const expectedPanel = sequenceToGuess.shift();
-                if(expectedPanel === panelClicked) {
+                // console.log(expectedPanel)
+                if(expectedPanel === panelClassName) {
                     if(sequenceToGuess.length === 0) {
-                        sequence.push(this.getRandomPanel());
+                        sequence.push(getRandomPanel());
                         sequenceToGuess = [...sequence];
-                        this.startFlashing();
+                        setTimeout(async ()=>{
+                            canClick = false
+                            for (const panel of sequence) {
+                                await flash(panel)
+                            }
+                            canClick = true
+                            this.isActive = false
+                        }, 1000)
                     }
                 } else {
                     alert('game over');
                 }
             },
-            flash(panel) {
-                return new Promise((resolve) => {
-                    panel.className += ' active'
-                    setTimeout(() => {
-                        panel.className = panel.className.replace(' active', '')
-                        setTimeout(()=>{
-                            resolve();
-                        }, 1000)
-                    }, 1000)
-                })
-            },
-            startFlashing: async (sequence) => {
+            startFlashing: async () => {
                 canClick = false
+                // console.log(canClick)
                 for (const panel of sequence) {
-                    await this.flash(panel)
+                    await flash(panel)
                 }
                 canClick = true
+                // console.log(canClick)
             }
-
         },
         mounted() {
-            this.startFlashing()
-            let difficulty = document.getElementById('easy').checked === true ? 'easy' : document.getElementById('middle').checked === true ? 'middle' : 'hard'
-            let delay = difficulty === 'easy' ? 1500 : difficulty === 'middle' ? 1000 : 400
-            console.log(delay)
+            if (localStorage.getItem('sequence')) {
+                try {
+                    sequence = JSON.parse(localStorage.getItem('sequence'));
+                } catch(e) {
+                    localStorage.removeItem('sequence');
+                }
+            }
         }
+        // switch (panel) {
+        // case 'top-left-panel':
+        //     this.isTopLeftActive = true
+        //     break
+        // case 'top-right-panel':
+        //     this.isTopRightActive = true
+        //     break
+        // case 'bottom-left-panel':
+        //     this.isBottomLeftActive = true
+        //     break
+        // case 'bottom-right-panel':
+        //     this.isBottomRightActive = true
+        //     break
+        // default:
+        //     console.log('Не вышло')
+        // }
     }
 </script>
 
