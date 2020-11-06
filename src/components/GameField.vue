@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>Simon</h1>
+        <h1>Simon Game</h1>
         <p>Уровни сложности:</p>
         <div class="container">
             <div>
@@ -15,51 +15,56 @@
                 <label for="hard">Сложный</label><br>
                 <input type="radio" name="mode" id="hard" value="hard">
             </div>
-            <button v-on:click="startFlashing">Старт</button>
+            <br>
+            <div>
+                <button class="startButton" v-on:click="startFlashing">Старт</button>
+            </div>
         </div>
         <div class="buttonsDiv">
             <div>
-                <div v-on:click="panelClicked" class="panel top-left-panel" :class="{ active: isTopLeftActive}"></div>
-                <div v-on:click="panelClicked" class="panel top-right-panel" :class="{ active: isTopRightActive}"></div>
+                <div v-on:click="panelClicked" class="panel top-left-panel"></div>
+                <div v-on:click="panelClicked" class="panel top-right-panel"></div>
             </div>
             <div>
-                <div v-on:click="panelClicked" class="panel bottom-left-panel" :class="{ active: isBottomLeftActive}"></div>
-                <div v-on:click="panelClicked" class="panel bottom-right-panel" :class="{ active: isBottomRightActive}"></div>
+                <div v-on:click="panelClicked" class="panel bottom-left-panel"></div>
+                <div v-on:click="panelClicked" class="panel bottom-right-panel"></div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-    // import Vue from 'vue'
     let inputsMode = document.getElementsByName('mode')
+    let topLeft = document.getElementsByClassName('top-left-panel')
+    let topRight = document.getElementsByClassName('top-right-panel')
+    let bottomLeft = document.getElementsByClassName('bottom-left-panel')
+    let bottomRight = document.getElementsByClassName('bottom-right-panel')
+
     const flash = (panel) => {
+        let panelNumber = panel === 'top-left-panel' ? 1 : panel === 'top-right-panel' ? 2 : panel === 'bottom-left-panel' ? 3 : 4
+        let audio = new Audio(require('./../../sounds/' + panelNumber + '.mp3'));
+        audio.play();
         let delay = inputsMode[0].checked ? 1500 : inputsMode[1].checked ? 1000 : 400
-        console.log(delay)
-        console.log(panel)
         return new Promise((resolve) => {
-            panel += ' active'
-            console.log(panel)
+            panel[0].className += ' active'
             setTimeout(() => {
-                panel = panel.replace(' active', '')
-                console.log(panel)
+                panel[0].className = panel[0].className.replace(' active', '')
                 setTimeout(()=>{
                     resolve();
-                    console.log('click!')
                 }, 250)
             }, delay)
         })
     }
     const getRandomPanel = () => {
         const panels = [
-            localStorage.topLeft,
-            localStorage.topRight,
-            localStorage.bottomLeft,
-            localStorage.bottomRight
+            topLeft,
+            topRight,
+            bottomLeft,
+            bottomRight
         ];
         return panels[parseInt(Math.random() * panels.length)]
     }
-    let sequence = localStorage.sequence
+    let sequence = []
     sequence = [
         getRandomPanel()
     ]
@@ -67,28 +72,26 @@
 
     let canClick = false
 
+
     export default {
         name: "GameField",
         data() {
             return {
-                isTopLeftActive: false,
-                isTopRightActive: false,
-                isBottomLeftActive: false,
-                isBottomRightActive: false
             }
         },
         methods: {
             panelClicked(panelClicked) {
-                // console.log(canClick)
+                let panelNumber = panelClicked.target.className.substr(6) === 'top-left-panel' ? 1 : panelClicked.target.className.substr(6) === 'top-right-panel' ? 2 : panelClicked.target.className.substr(6) === 'bottom-left-panel' ? 3 : 4
+                let audio = new Audio(require('./../../sounds/' + panelNumber + '.mp3'));
+                audio.play();
+                panelClicked.target.className += ' active'
+                setTimeout(() => {
+                    panelClicked.className = panelClicked.target.className.slice(0, -7);
+                    panelClicked.target.className = panelClicked.className
+                }, 200)
                 if(!canClick) return;
-                let panelClassName = panelClicked.target.className.substr(6)
-                // panelClassName += ' active'
-                // setTimeout(() => {
-                //     panelClassName = panelClassName.replace(' active', '')
-                // }, 200)
                 const expectedPanel = sequenceToGuess.shift();
-                // console.log(expectedPanel)
-                if(expectedPanel === panelClassName) {
+                if(expectedPanel[0].className.substr(6) === panelClicked.target.className.substr(6)) {
                     if(sequenceToGuess.length === 0) {
                         sequence.push(getRandomPanel());
                         sequenceToGuess = [...sequence];
@@ -98,7 +101,6 @@
                                 await flash(panel)
                             }
                             canClick = true
-                            this.isActive = false
                         }, 1000)
                     }
                 } else {
@@ -107,12 +109,10 @@
             },
             startFlashing: async () => {
                 canClick = false
-                // console.log(canClick)
                 for (const panel of sequence) {
                     await flash(panel)
                 }
                 canClick = true
-                // console.log(canClick)
             }
         },
         mounted() {
@@ -123,23 +123,9 @@
                     localStorage.removeItem('sequence');
                 }
             }
+        },
+        beforeUpdate() {
         }
-        // switch (panel) {
-        // case 'top-left-panel':
-        //     this.isTopLeftActive = true
-        //     break
-        // case 'top-right-panel':
-        //     this.isTopRightActive = true
-        //     break
-        // case 'bottom-left-panel':
-        //     this.isBottomLeftActive = true
-        //     break
-        // case 'bottom-right-panel':
-        //     this.isBottomRightActive = true
-        //     break
-        // default:
-        //     console.log('Не вышло')
-        // }
     }
 </script>
 
@@ -153,7 +139,7 @@
         display: inline-block
         padding: 5px
     .buttonsDiv
-        margin-top: 50px
+        margin-top: 20px
     .panel
         width: 250px
         height: 250px
@@ -178,4 +164,8 @@
         background-color: #FF5643
     .active
         background-color: white
+    .startButton
+        margin-top: 20px
+        padding: 20px
+        width: 200px
 </style>
