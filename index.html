@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <meta http-eqiuv="X-UA-Compatible" content="id-edge">
+        <title>Document</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="container">
+            <h2>Уровни сложности: </h2>
+            <div>
+                <label for="easy">Лёгкий</label><br>
+                <input type="radio" name="mode" id="easy" value="easy" checked>
+            </div>
+            <div>
+                <label for="middle">Средний</label><br>
+                <input type="radio" name="mode" id="middle" value="middle">
+            </div>
+            <div>
+                <label for="hard">Сложный</label><br>
+                <input type="radio" name="mode" id="hard" value="hard">
+            </div><br>
+                <button id="startButton">Старт</button>
+        </div>
+        <div class="buttonsDiv">
+            <div>
+                <audio src="./sounds/1.mp3"></audio><div onClick="panelClicked(event.currentTarget); this.previousSibling.play()" class="panel top-left-panel"></div>
+                <audio src="./sounds/2.mp3"></audio><div onClick="panelClicked(event.currentTarget); this.previousSibling.play()" class="panel top-right-panel"></div>
+            </div>
+            <div>
+                <audio src="./sounds/3.mp3"></audio><div onClick="panelClicked(event.currentTarget); this.previousSibling.play()" class="panel bottom-left-panel"></div>
+                <audio src="./sounds/4.mp3"></audio><div onClick="panelClicked(event.currentTarget); this.previousSibling.play()" class="panel bottom-right-panel"></div>
+            </div>
+        </div>
+        <script src='main.js'></script>
+    </body>
+</html>
